@@ -39,13 +39,13 @@ export default function MembersCard({ sessionId, members }: MembersCardProps) {
   return (
     <div className="card p-4 animate-fade-in">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-bold text-gray-800 flex items-center gap-2">
+        <h3 className="font-heading font-bold text-slate-800 flex items-center gap-2">
           <span className="text-lg">👥</span> Members
-          <span className="badge badge-neutral">{members.length}</span>
+          <span className="badge badge-neutral bg-slate-100">{members.length}</span>
         </h3>
         <button
           onClick={() => setShowInput(!showInput)}
-          className="btn-ghost flex items-center gap-1 text-indigo-600 text-sm font-semibold px-2 py-1"
+          className="btn-ghost flex items-center gap-1 text-sky-600 text-sm font-semibold px-2 py-1 hover:bg-sky-50"
         >
           <UserPlus size={16} /> Add
         </button>
@@ -73,16 +73,16 @@ export default function MembersCard({ sessionId, members }: MembersCardProps) {
         {members.map((member, i) => (
           <div
             key={member.id}
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all"
+            className="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-all hover:shadow-sm"
           >
-            <div className={cn('avatar w-7 h-7 text-xs', getAvatarColor(i))}>
+            <div className={cn('avatar w-7 h-7 text-xs shadow-sm', getAvatarColor(i))}>
               {getInitials(member.name)}
             </div>
-            <span className="text-sm font-medium">{member.name}</span>
+            <span className="text-sm font-medium text-slate-700">{member.name}</span>
             {i === 0 && <Crown size={12} className="text-amber-500" />}
             <button
               onClick={() => handleRemove(member)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 ml-1"
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 hover:text-red-500 ml-1"
               title="Remove member"
             >
               <Trash2 size={14} />

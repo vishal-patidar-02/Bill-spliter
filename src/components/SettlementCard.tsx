@@ -42,9 +42,9 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
         <ArrowLeftRight size={100} strokeWidth={1.5} />
       </div>
       
-      <h3 className="font-bold text-gray-800 mb-6 flex items-center gap-2">
+      <h3 className="font-heading font-bold text-slate-800 mb-6 flex items-center gap-2">
         <span className="text-lg">🤝</span> Smart Settlement
-        <span className="badge badge-neutral">Minimal Trans.</span>
+        <span className="badge badge-neutral bg-slate-100">Minimal Trans.</span>
       </h3>
 
       {settlements.length > 0 ? (
@@ -56,29 +56,29 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
             return (
               <div 
                 key={`${s.from}-${s.to}-${i}`} 
-                className="group flex flex-col p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100/50 hover:bg-white transition-all shadow-sm"
+                className="group flex flex-col p-4 rounded-2xl bg-sky-50/40 border border-sky-100/50 hover:bg-white transition-all shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex flex-col items-center gap-2">
                     <div className={cn('avatar w-12 h-12 text-sm shadow-md ring-2 ring-white', getAvatarColor(fromIdx))}>
                       {getInitials(getMemberName(s.from))}
                     </div>
-                    <span className="text-[10px] font-bold text-gray-600 uppercase truncate max-w-[60px]">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[60px]">
                       {getMemberName(s.from)}
                     </span>
                   </div>
                   
                   <div className="flex flex-col items-center flex-1">
-                    <div className="text-lg font-black text-indigo-700 tracking-tight">
+                    <div className="text-lg font-heading font-black text-sky-700 tracking-tight">
                       {formatCurrency(s.amount)}
                     </div>
                     <div className="w-full flex items-center gap-1.5 px-4 mb-1">
-                      <div className="h-0.5 flex-1 bg-indigo-200 rounded-full relative overflow-hidden">
-                        <div className="absolute inset-0 bg-indigo-500 animate-shimmer" style={{ width: '30%' }} />
+                      <div className="h-0.5 flex-1 bg-sky-200 rounded-full relative overflow-hidden">
+                        <div className="absolute inset-0 bg-sky-500 animate-shimmer" style={{ width: '30%' }} />
                       </div>
-                      <ArrowLeftRight size={14} className="text-indigo-400 rotate-0" />
+                      <ArrowLeftRight size={14} className="text-sky-400 rotate-0" />
                     </div>
-                    <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
+                    <span className="text-[9px] font-bold text-sky-400 uppercase tracking-widest">
                       TRANSFERS TO
                     </span>
                   </div>
@@ -87,7 +87,7 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
                     <div className={cn('avatar w-12 h-12 text-sm shadow-md ring-2 ring-white', getAvatarColor(toIdx))}>
                       {getInitials(getMemberName(s.to))}
                     </div>
-                    <span className="text-[10px] font-bold text-gray-600 uppercase truncate max-w-[60px]">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase truncate max-w-[60px]">
                       {getMemberName(s.to)}
                     </span>
                   </div>
@@ -102,12 +102,12 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
             ✅
           </div>
           <p className="text-sm font-bold text-emerald-600">All Settled Up!</p>
-          <p className="text-xs text-gray-400 mt-1 max-w-[200px]">Everyone is even. Add more expenses to keep splitting!</p>
+          <p className="text-xs text-slate-400 mt-1 max-w-[200px]">Everyone is even. Add more expenses to keep splitting!</p>
         </div>
       )}
 
       {/* Export Options */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-3 mt-4">
         <button
           onClick={handleWhatsApp}
           className="btn-secondary h-12 flex-col !gap-1 p-0 rounded-2xl border-emerald-100 hover:bg-emerald-50 hover:border-emerald-200 text-emerald-600 transition-all shadow-sm"
@@ -126,7 +126,7 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
         </button>
         <button
           onClick={handlePDF}
-          className="btn-secondary h-12 flex-col !gap-1 p-0 rounded-2xl border-indigo-100 hover:bg-indigo-50 hover:border-indigo-200 text-indigo-600 transition-all shadow-sm"
+          className="btn-secondary h-12 flex-col !gap-1 p-0 rounded-2xl border-sky-100 hover:bg-sky-50 hover:border-sky-200 text-sky-600 transition-all shadow-sm"
           disabled={expenses.length === 0}
         >
           <FileText size={16} />
@@ -135,9 +135,9 @@ export default function SettlementCard({ session, members, expenses }: Settlemen
       </div>
       
       {/* Smart Algorithm Notice */}
-      <div className="mt-6 flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
-        <CheckCircle2 size={12} className="text-indigo-500" />
-        <span className="text-[10px] font-medium text-gray-500">
+      <div className="mt-6 flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <CheckCircle2 size={12} className="text-sky-500" />
+        <span className="text-[10px] font-medium text-slate-500">
           Our algorithm minimizes transactions to save you time. 🚀
         </span>
       </div>

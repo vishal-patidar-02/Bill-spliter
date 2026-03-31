@@ -1,12 +1,13 @@
 // ============================================
 // ZUSTAND STORE — Session State Management
-// Persisted to localStorage
+// Persisted to localStorage & Synced to Supabase
 // ============================================
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { nanoid } from 'nanoid';
 import { Session, Member, Expense, Payer, Split, ExpenseCategory } from './types';
+import { supabase } from './supabase';
 
 interface SessionStore {
   // State
@@ -15,7 +16,9 @@ interface SessionStore {
 
   // Session actions
   createSession: (name: string) => string;
-  joinSession: (sessionId: string, memberName: string) => boolean;
+  joinSession: (sessionId: string, memberName: string) => Promise<boolean>;
+  fetchSessionFromDb: (sessionId: string) => Promise<boolean>;
+  subscribeToSession: (sessionId: string) => () => void;
   setCurrentSession: (sessionId: string | null) => void;
   getCurrentSession: () => Session | null;
 
@@ -40,6 +43,16 @@ interface SessionStore {
   loadDemoData: () => string;
 }
 
+const pushToSupabase = async (sessionId: string, session: Session) => {
+  if (supabase) {
+    try {
+      await supabase.from('sessions').upsert({ id: sessionId, data: session as any });
+    } catch (err) {
+      console.error("Supabase sync failed:", err);
+    }
+  }
+};
+
 export const useSessionStore = create<SessionStore>()(
   persist(
     (set, get) => ({
@@ -59,11 +72,58 @@ export const useSessionStore = create<SessionStore>()(
           sessions: { ...state.sessions, [id]: session },
           currentSessionId: id,
         }));
+        pushToSupabase(id, session);
         return id;
       },
 
-      joinSession: (sessionId: string, memberName: string) => {
-        const session = get().sessions[sessionId];
+      fetchSessionFromDb: async (sessionId: string) => {
+        if (!supabase) return false;
+        try {
+          const { data } = await supabase.from('sessions').select('data').eq('id', sessionId).single();
+          if (data && data.data) {
+            set((state) => ({
+              sessions: { ...state.sessions, [sessionId]: data.data },
+            }));
+            return true;
+          }
+        } catch (e) {
+          console.error("Failed to fetch session from Supabase", e);
+        }
+        return false;
+      },
+
+      subscribeToSession: (sessionId: string) => {
+        if (!supabase) return () => {};
+        
+        const channel = supabase.channel(`room-${sessionId}`)
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` }, (payload) => {
+            const newPayload = payload.new as Record<string, any>;
+            if (newPayload && newPayload.data) {
+              set((state) => {
+                // Only write if there's actually a session change to avoid re-renders
+                if (JSON.stringify(state.sessions[sessionId]) !== JSON.stringify(newPayload.data)) {
+                  return { sessions: { ...state.sessions, [sessionId]: newPayload.data as Session } };
+                }
+                return state;
+              });
+            }
+          })
+          .subscribe();
+
+        return () => {
+          supabase?.removeChannel(channel);
+        };
+      },
+
+      joinSession: async (sessionId: string, memberName: string) => {
+        let session = get().sessions[sessionId];
+
+        // Fetch from DB if not local
+        if (!session && supabase) {
+          await get().fetchSessionFromDb(sessionId);
+          session = get().sessions[sessionId];
+        }
+
         if (!session) return false;
 
         const existingMember = session.members.find(
@@ -79,16 +139,14 @@ export const useSessionStore = create<SessionStore>()(
           name: memberName,
         };
 
+        const updatedSession = { ...session, members: [...session.members, newMember] };
+
         set((state) => ({
-          sessions: {
-            ...state.sessions,
-            [sessionId]: {
-              ...session,
-              members: [...session.members, newMember],
-            },
-          },
+          sessions: { ...state.sessions, [sessionId]: updatedSession },
           currentSessionId: sessionId,
         }));
+        
+        pushToSupabase(sessionId, updatedSession);
         return true;
       },
 
@@ -107,96 +165,78 @@ export const useSessionStore = create<SessionStore>()(
           id: nanoid(8),
           name,
         };
+        let updatedSession: Session | null = null;
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
+          updatedSession = { ...session, members: [...session.members, member] };
           return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...session,
-                members: [...session.members, member],
-              },
-            },
+            sessions: { ...state.sessions, [sessionId]: updatedSession },
           };
         });
+        if (updatedSession) pushToSupabase(sessionId, updatedSession);
         return member;
       },
 
       removeMember: (sessionId: string, memberId: string) => {
+        let updatedSession: Session | null = null;
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
+          updatedSession = { ...session, members: session.members.filter((m) => m.id !== memberId) };
           return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...session,
-                members: session.members.filter((m) => m.id !== memberId),
-              },
-            },
+            sessions: { ...state.sessions, [sessionId]: updatedSession },
           };
         });
+        if (updatedSession) pushToSupabase(sessionId, updatedSession);
       },
 
       addExpense: (sessionId, title, amount, payers, splits, category, notes) => {
-        const expense: Expense = {
-          id: nanoid(8),
-          title,
-          amount,
-          payers,
-          splits,
-          category,
-          notes,
-          createdAt: new Date().toISOString(),
-        };
+        let updatedSession: Session | null = null;
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
+          const expense: Expense = {
+            id: nanoid(8), title, amount, payers, splits, category, notes, createdAt: new Date().toISOString(),
+          };
+          updatedSession = { ...session, expenses: [expense, ...session.expenses] };
           return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...session,
-                expenses: [expense, ...session.expenses],
-              },
-            },
+            sessions: { ...state.sessions, [sessionId]: updatedSession },
           };
         });
+        if (updatedSession) pushToSupabase(sessionId, updatedSession);
       },
 
       editExpense: (sessionId, expenseId, updates) => {
+        let updatedSession: Session | null = null;
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
+          updatedSession = {
+            ...session,
+            expenses: session.expenses.map((e) => e.id === expenseId ? { ...e, ...updates } : e),
+          };
           return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...session,
-                expenses: session.expenses.map((e) =>
-                  e.id === expenseId ? { ...e, ...updates } : e
-                ),
-              },
-            },
+            sessions: { ...state.sessions, [sessionId]: updatedSession },
           };
         });
+        if (updatedSession) pushToSupabase(sessionId, updatedSession);
       },
 
       deleteExpense: (sessionId, expenseId) => {
+        let updatedSession: Session | null = null;
         set((state) => {
           const session = state.sessions[sessionId];
           if (!session) return state;
+          updatedSession = {
+            ...session,
+            expenses: session.expenses.filter((e) => e.id !== expenseId),
+          };
           return {
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...session,
-                expenses: session.expenses.filter((e) => e.id !== expenseId),
-              },
-            },
+            sessions: { ...state.sessions, [sessionId]: updatedSession },
           };
         });
+        if (updatedSession) pushToSupabase(sessionId, updatedSession);
       },
 
       loadDemoData: () => {

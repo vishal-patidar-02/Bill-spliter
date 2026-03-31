@@ -133,7 +133,7 @@ export default function AddExpenseModal({
         <div className="p-5 pb-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-heading font-bold text-slate-900">
               {editExpense ? 'Edit Expense' : 'Add Expense'}
             </h2>
             <button onClick={onClose} className="btn-ghost p-2 rounded-full">
@@ -143,11 +143,11 @@ export default function AddExpenseModal({
 
           {/* Amount */}
           <div className="mb-5">
-            <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+            <label className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
               <IndianRupee size={14} /> Amount
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-semibold text-lg">₹</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-lg">₹</span>
               <input
                 type="number"
                 value={amount}
@@ -162,7 +162,7 @@ export default function AddExpenseModal({
 
           {/* Title */}
           <div className="mb-5">
-            <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+            <label className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
               <StickyNote size={14} /> What's it for?
             </label>
             <input
@@ -177,7 +177,7 @@ export default function AddExpenseModal({
 
           {/* Category */}
           <div className="mb-5">
-            <label className="text-sm font-semibold text-gray-600 mb-2 block">Category</label>
+            <label className="text-sm font-semibold text-slate-600 mb-2 block">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map((cat) => (
                 <button
@@ -196,7 +196,7 @@ export default function AddExpenseModal({
 
           {/* Paid By */}
           <div className="mb-5">
-            <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+            <label className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
               <Users size={14} /> Paid by
             </label>
             <div className="flex gap-2 overflow-x-auto pb-1">
@@ -207,8 +207,8 @@ export default function AddExpenseModal({
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-xl border-1.5 transition-all flex-shrink-0',
                     payerId === member.id
-                      ? 'border-indigo-400 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-indigo-200'
+                      ? 'border-sky-400 bg-sky-50 text-sky-700'
+                      : 'border-slate-200 hover:border-sky-200'
                   )}
                 >
                   <div className={cn('avatar w-7 h-7 text-xs', getAvatarColor(i))}>
@@ -222,7 +222,7 @@ export default function AddExpenseModal({
 
           {/* Split Type */}
           <div className="mb-4">
-            <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1.5">
+            <label className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-1.5">
               <Split size={14} /> Split type
             </label>
             <div className="flex gap-2 mb-3">
@@ -250,14 +250,14 @@ export default function AddExpenseModal({
           {/* Members selection */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-gray-600">Split among</span>
+              <span className="text-sm font-semibold text-slate-600">Split among</span>
               <button
                 onClick={() =>
                   setSelectedMembers(
                     selectedMembers.length === members.length ? [] : members.map((m) => m.id)
                   )
                 }
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                className="text-xs font-semibold text-sky-600 hover:text-sky-700"
               >
                 {selectedMembers.length === members.length ? 'Deselect all' : 'Select all'}
               </button>
@@ -276,8 +276,8 @@ export default function AddExpenseModal({
                     className={cn(
                       'flex items-center gap-3 p-3 rounded-xl border-1.5 transition-all cursor-pointer',
                       isSelected
-                        ? 'border-indigo-300 bg-indigo-50/50'
-                        : 'border-gray-100 bg-gray-50/50 opacity-60'
+                        ? 'border-sky-300 bg-sky-50/50'
+                        : 'border-slate-100 bg-slate-50/50 opacity-60'
                     )}
                     onClick={() => toggleMember(member.id)}
                   >
@@ -285,8 +285,8 @@ export default function AddExpenseModal({
                       className={cn(
                         'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0',
                         isSelected
-                          ? 'bg-indigo-600 border-indigo-600'
-                          : 'border-gray-300'
+                          ? 'bg-sky-600 border-sky-600'
+                          : 'border-slate-300'
                       )}
                     >
                       {isSelected && (
@@ -300,7 +300,7 @@ export default function AddExpenseModal({
                     </div>
                     <span className="text-sm font-medium flex-1">{member.name}</span>
                     {isSelected && splitMode === 'equal' && perPerson && (
-                      <span className="text-sm font-semibold text-indigo-600">₹{perPerson}</span>
+                      <span className="text-sm font-semibold text-sky-600">₹{perPerson}</span>
                     )}
                     {isSelected && splitMode === 'custom' && (
                       <input
@@ -348,7 +348,7 @@ export default function AddExpenseModal({
 
           {/* Notes */}
           <div className="mb-6">
-            <label className="text-sm font-semibold text-gray-600 mb-2 block">Notes (optional)</label>
+            <label className="text-sm font-semibold text-slate-600 mb-2 block">Notes (optional)</label>
             <input
               type="text"
               value={notes}

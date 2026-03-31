@@ -36,22 +36,41 @@ function SessionContent() {
 
   const session = useMemo(() => sessions[sessionId], [sessions, sessionId]);
 
+  // Handle session loading and subscription
   useEffect(() => {
-    if (!session) {
-      // Small timeout to allow re-hydration
-      const timer = setTimeout(() => {
-        if (!useSessionStore.getState().sessions[sessionId]) {
+    let isMounted = true;
+
+    const verifyAndLoadSession = async () => {
+      let storeSession = useSessionStore.getState().sessions[sessionId];
+      
+      // If not in local storage, fetch from Supabase
+      if (!storeSession) {
+        const exists = await useSessionStore.getState().fetchSessionFromDb(sessionId);
+        if (!exists && isMounted) {
           router.replace('/');
+          return;
         }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-    setCurrentSession(sessionId);
-  }, [session, sessionId, setCurrentSession, router]);
+      }
+      
+      if (isMounted) {
+        setCurrentSession(sessionId);
+      }
+    };
+
+    verifyAndLoadSession();
+    
+    // Subscribe to real-time changes
+    const unsubscribe = useSessionStore.getState().subscribeToSession(sessionId);
+    
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [sessionId, setCurrentSession, router]); // Removed 'session' dependency so it doesn't constantly re-trigger
 
   if (!session) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-50/50">
+      <div className="w-12 h-12 border-4 border-sky-100 border-t-sky-600 rounded-full animate-spin" />
     </div>
   );
 
@@ -100,26 +119,34 @@ function SessionContent() {
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-xl font-black text-gray-900 leading-tight truncate max-w-[180px]">
+            <h1 className="text-2xl font-heading font-black text-slate-900 leading-tight truncate max-w-[170px]">
               {session.name}
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-full">
-                CODE: {sessionId}
-              </span>
+              <button 
+                onClick={async () => {
+                  const success = await copyToClipboard(sessionId);
+                  if (success) showToast('Copied! 📋', 'success');
+                }}
+                className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-full transition-colors cursor-pointer group"
+                title="Copy Session Code"
+              >
+                CODE: <span className="text-slate-700">{sessionId}</span>
+                <Copy size={10} className="text-slate-400 group-hover:text-slate-600 ml-0.5" />
+              </button>
             </div>
           </div>
         </div>
         <button
           onClick={handleShare}
-          className="btn-secondary px-3 py-2 text-indigo-600 bg-white/70 border-white hover:bg-white rounded-2xl shadow-sm text-sm font-bold gap-2"
+          className="btn-secondary px-3 py-2 text-sky-600 bg-white/70 border-white hover:bg-white rounded-2xl shadow-sm text-sm font-bold gap-2"
         >
           <Share2 size={16} /> Share
         </button>
       </header>
 
       {/* Tabs */}
-      <nav className="sticky top-2 z-30 mb-6 bg-white/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/50 shadow-lg shadow-indigo-500/5 flex">
+      <nav className="sticky top-2 z-30 mb-6 bg-white/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/50 shadow-lg shadow-sky-500/5 flex">
         {[
           { id: 'expenses', label: 'Expenses', icon: Clock },
           { id: 'balances', label: 'Balances', icon: SlidersHorizontal },
@@ -131,8 +158,8 @@ function SessionContent() {
             className={cn(
               "flex-1 h-10 flex items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
               activeTab === tab.id 
-                ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" 
-                : "text-gray-500 hover:text-gray-900"
+                ? "bg-sky-600 text-white shadow-md shadow-sky-200" 
+                : "text-slate-500 hover:text-slate-900"
             )}
           >
             <tab.icon size={14} strokeWidth={3} />
@@ -151,6 +178,7 @@ function SessionContent() {
               expenses={session.expenses} 
               members={session.members} 
               onEdit={handleEditExpense}
+              onAdd={openAddModal}
             />
           </>
         )}
@@ -174,7 +202,7 @@ function SessionContent() {
       {/* Floating Action Button */}
       <button
         onClick={openAddModal}
-        className="fab w-16 h-16 rounded-2xl shadow-xl shadow-indigo-500/40 bottom-6 right-6"
+        className="fab w-16 h-16 rounded-2xl shadow-xl shadow-sky-500/40 bottom-6 right-6"
         title="Add Expense"
         id="add-expense-fab"
       >

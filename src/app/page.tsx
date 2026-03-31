@@ -35,13 +35,13 @@ function HomeContent() {
     router.push(`/session/${id}`);
   };
 
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!sessionId.trim()) {
       showToast('Please enter a session code', 'warning');
       return;
     }
     setLoading(true);
-    const success = joinSession(sessionId.trim(), 'Guest');
+    const success = await joinSession(sessionId.trim(), 'Guest');
     if (success) {
       router.push(`/session/${sessionId.trim()}`);
     } else {
@@ -50,36 +50,44 @@ function HomeContent() {
     }
   };
 
-  const handleDemo = () => {
-    showToast('Loading Demo: Goa Trip 🏖️', 'info');
-    const id = loadDemoData();
-    router.push(`/session/${id}`);
+  const handleDemo = async () => {
+    showToast('Joining Global Demo: Goa Trip 🏖️', 'info');
+    setLoading(true);
+    const demoId = 'demo-goa-2026';
+    const success = await joinSession(demoId, 'Guest');
+    if (success) {
+      router.push(`/session/${demoId}`);
+    } else {
+      // Fallback if session wasn't seeded in DB yet
+      const id = loadDemoData();
+      router.push(`/session/${id}`);
+    }
   };
 
   return (
     <main className="min-h-screen app-container p-6 pb-20 flex flex-col items-center justify-center animate-fade-in">
       {/* Hero Section */}
       <div className="text-center mb-10 w-full">
-        <div className="inline-flex items-center justify-center p-3.5 bg-indigo-600 rounded-3xl shadow-xl shadow-indigo-200/50 mb-6 rotate-3">
+        <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl shadow-2xl shadow-blue-400/50 mb-6 rotate-3 transform transition-transform hover:rotate-6 hover:scale-105">
           <Wallet size={36} className="text-white" strokeWidth={2.5} />
         </div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight leading-tight mb-2">
+        <h1 className="text-5xl font-heading font-black text-slate-900 tracking-tight leading-tight mb-2">
           SplitEase.
         </h1>
-        <p className="text-gray-500 font-semibold text-lg max-w-[280px] mx-auto leading-relaxed">
-          Smart Group Expenses, <span className="text-indigo-600">Zero Friction.</span>
+        <p className="text-slate-500 font-medium text-lg max-w-[280px] mx-auto leading-relaxed">
+          Smart Group Expenses, <span className="text-blue-600 font-bold">Zero Friction.</span>
         </p>
       </div>
 
       {/* Main Action Card */}
-      <div className="card w-full p-2 mb-8 bg-white/80 backdrop-blur-md shadow-2xl shadow-indigo-500/10">
+      <div className="card-glass w-full p-2 mb-8 shadow-2xl shadow-blue-500/10">
         {/* Tabs */}
         <div className="flex gap-1 p-1 bg-gray-100 rounded-2xl mb-4">
           <button
             onClick={() => setActiveTab('create')}
             className={cn(
               "flex-1 h-11 flex items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-              activeTab === 'create' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              activeTab === 'create' ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
             )}
           >
             <Plus size={14} strokeWidth={3} /> Create
@@ -88,7 +96,7 @@ function HomeContent() {
             onClick={() => setActiveTab('join')}
             className={cn(
               "flex-1 h-11 flex items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-              activeTab === 'join' ? "bg-white text-indigo-600 shadow-sm" : "text-gray-400 hover:text-gray-600"
+              activeTab === 'join' ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
             )}
           >
             <Link size={14} strokeWidth={3} /> Join
@@ -137,7 +145,7 @@ function HomeContent() {
               <button
                 onClick={handleJoin}
                 disabled={loading}
-                className="btn-secondary w-full h-14 rounded-2xl text-base font-black gap-3 border-gray-200 hover:border-indigo-300 text-indigo-600 active:scale-[0.98] transition-all"
+                className="btn-secondary w-full h-14 rounded-2xl text-base font-black gap-3 border-slate-200 hover:border-blue-300 text-blue-600 active:scale-[0.98] transition-all"
                 id="join-session-btn"
               >
                 {loading ? "Joining..." : "Join Existing Session"}
@@ -181,9 +189,9 @@ function HomeContent() {
         <a
           href="https://github.com/SplitEase"
           target="_blank"
-          className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-gray-200/50 group hover:border-indigo-300 transition-all text-left opacity-80"
+          className="flex items-center gap-4 p-4 rounded-2xl bg-white/50 border border-slate-200/50 group hover:border-blue-300 transition-all text-left opacity-90 backdrop-blur-sm"
         >
-          <div className="w-12 h-12 rounded-2xl bg-gray-900 flex items-center justify-center shadow-lg group-hover:scale-110 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-blue-600 transition-all">
             <Globe size={24} className="text-white" />
           </div>
           <div>
