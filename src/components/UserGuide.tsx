@@ -124,9 +124,9 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       >
         <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{q}</span>
         {open ? (
-          <ChevronDown size={16} className="text-sky-500 flex-shrink-0 transition-transform" />
+          <ChevronDown size={16} className="text-sky-500 shrink-0 transition-transform" />
         ) : (
-          <ChevronRight size={16} className="text-slate-400 flex-shrink-0 transition-transform" />
+          <ChevronRight size={16} className="text-slate-400 shrink-0 transition-transform" />
         )}
       </button>
       {open && (
@@ -235,7 +235,7 @@ export default function UserGuide() {
                                    backdrop-blur-sm shadow-sm"
                       >
                         {/* Step number + icon */}
-                        <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                        <div className="flex flex-col items-center gap-1.5 shrink-0">
                           <div
                             className={cn(
                               'w-10 h-10 rounded-xl flex items-center justify-center shadow-md',
@@ -263,7 +263,7 @@ export default function UserGuide() {
                   })}
 
                   {/* Pro tip */}
-                  <div className="mt-2 p-4 rounded-2xl bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/15 border border-sky-200/60 dark:border-sky-800/40">
+                  <div className="mt-2 p-4 rounded-2xl bg-linear-to-br from-sky-50 to-blue-50 dark:from-sky-900/20 dark:to-blue-900/15 border border-sky-200/60 dark:border-sky-800/40">
                     <p className="text-sm font-semibold text-sky-700 dark:text-sky-300">
                       💡 <strong>Pro Tip:</strong> Share the session code with your friends so everyone can add and view expenses from their own device — no account needed!
                     </p>

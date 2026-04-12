@@ -61,6 +61,44 @@ export interface MemberBalance {
   netBalance: number; // positive = owed money, negative = owes money
 }
 
+export interface ReceiptLineItem {
+  id: string;
+  name: string;
+  qty: number;
+  unitPrice: number;
+  totalPrice: number;
+  confidence: number;
+  include: boolean;
+}
+
+export interface ReceiptDraft {
+  merchant: string;
+  receiptDate: string;
+  currency: string;
+  subtotal: number;
+  tax: number;
+  tip: number;
+  total: number;
+  lineItems: ReceiptLineItem[];
+  warnings: string[];
+}
+
+export interface ReceiptLineAssignment {
+  lineItemId: string;
+  memberIds: string[];
+}
+
+export interface ReceiptToExpenseInput {
+  sessionId: string;
+  payerId: string;
+  category: ExpenseCategory;
+  notes: string;
+  draft: ReceiptDraft;
+  assignments: ReceiptLineAssignment[];
+  taxMemberIds: string[];
+  tipMemberIds: string[];
+}
+
 export type SplitType = 'equal' | 'custom';
 
 export const CATEGORIES: { value: ExpenseCategory; label: string; emoji: string }[] = [

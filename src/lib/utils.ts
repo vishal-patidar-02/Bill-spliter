@@ -8,6 +8,18 @@ export function formatCurrency(amount: number): string {
   return `₹${amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 }
 
+export function roundMoney(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export function parseMoney(value: string | number | null | undefined): number {
+  if (typeof value === 'number') return roundMoney(value);
+  if (!value) return 0;
+  const normalized = String(value).replace(/[^\d.-]/g, '');
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? roundMoney(parsed) : 0;
+}
+
 export function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   return date.toLocaleDateString('en-IN', {

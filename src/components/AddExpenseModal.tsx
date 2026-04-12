@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, IndianRupee, Users, Split, StickyNote } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, IndianRupee, Users, Split, StickyNote, Upload, Loader2 } from 'lucide-react';
 import { useSessionStore } from '@/lib/store';
 import { useToast } from './Toast';
-import { Member, ExpenseCategory, CATEGORIES, Payer, Split as SplitType } from '@/lib/types';
+import { Member, ExpenseCategory, CATEGORIES, Payer, Split as SplitType, ReceiptDraft } from '@/lib/types';
 import { cn, getInitials, getAvatarColor } from '@/lib/utils';
+import ReceiptReviewModal from './ReceiptReviewModal';
 
 interface AddExpenseModalProps {
   sessionId: string;
@@ -21,6 +22,7 @@ interface AddExpenseModalProps {
 export default function AddExpenseModal({ sessionId, members, onClose, editExpense }: AddExpenseModalProps) {
   const { addExpense, editExpense: updateExpense } = useSessionStore();
   const { showToast } = useToast();
+  const receiptInputRef = useRef<HTMLInputElement | null>(null);
 
   const [title,  setTitle]  = useState(editExpense?.title  || '');
   const [amount, setAmount] = useState(editExpense?.amount?.toString() || '');
@@ -46,6 +48,8 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
     editExpense?.splits?.map(s => s.memberId) || members.map(m => m.id)
   );
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
+  const [isParsingReceipt, setIsParsingReceipt] = useState(false);
+  const [receiptDraft, setReceiptDraft] = useState<ReceiptDraft | null>(null);
 
   // Initialize custom split amounts and handle initial single-payer state
   useEffect(() => {
@@ -133,6 +137,45 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
     onClose();
   };
 
+  const openReceiptPicker = () => {
+    receiptInputRef.current?.click();
+  };
+
+  const handleReceiptUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setIsParsingReceipt(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/receipt/parse', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        showToast(payload.error || 'Failed to parse receipt', 'error');
+        return;
+      }
+
+      setReceiptDraft(payload.draft as ReceiptDraft);
+      if (payload.degraded) {
+        showToast('OCR could not read the image fully. Review and edit values manually.', 'warning');
+      } else {
+        showToast('Receipt parsed. Review assignments and import.', 'success');
+      }
+    } catch (error) {
+      console.error('Receipt upload failed:', error);
+      showToast('Receipt parse failed. Try another image.', 'error');
+    } finally {
+      setIsParsingReceipt(false);
+    }
+  };
+
   return (
     <>
       <div className="bottom-sheet-overlay" onClick={onClose} />
@@ -145,9 +188,30 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
             <h2 className="text-xl font-heading font-bold text-slate-900 dark:text-white">
               {editExpense ? 'Edit Expense' : 'Add Expense'}
             </h2>
-            <button onClick={onClose} className="btn-ghost p-2 rounded-full">
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+              {!editExpense && (
+                <>
+                  <input
+                    ref={receiptInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleReceiptUpload}
+                  />
+                  <button
+                    onClick={openReceiptPicker}
+                    disabled={isParsingReceipt}
+                    className="btn-secondary h-9 px-3 rounded-xl text-xs font-bold gap-1.5 disabled:opacity-60"
+                  >
+                    {isParsingReceipt ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    {isParsingReceipt ? 'Parsing...' : 'Upload Receipt'}
+                  </button>
+                </>
+              )}
+              <button onClick={onClose} className="btn-ghost p-2 rounded-full">
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           {/* Amount */}
@@ -236,7 +300,7 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
                       }
                     }}
                     className={cn(
-                      'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all flex-shrink-0',
+                      'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shrink-0',
                       isSelected
                         ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 shadow-sm'
                         : 'border-slate-200 dark:border-slate-700 hover:border-sky-200 dark:hover:border-sky-800 text-slate-700 dark:text-slate-300'
@@ -338,7 +402,7 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
                   >
                     {/* Checkbox */}
                     <div className={cn(
-                      'w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0',
+                      'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0',
                       isSelected
                         ? 'bg-sky-600 border-sky-600 shadow-sm'
                         : 'border-slate-300 dark:border-slate-600'
@@ -403,7 +467,7 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
 
           {/* Notes */}
           <div className="mb-6">
-            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2 block flex items-center gap-2">
+            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300 mb-2 flex items-center gap-2">
               <StickyNote size={14} /> Notes (optional)
             </label>
             <input
@@ -426,6 +490,18 @@ export default function AddExpenseModal({ sessionId, members, onClose, editExpen
           </button>
         </div>
       </div>
+      {receiptDraft && (
+        <ReceiptReviewModal
+          sessionId={sessionId}
+          members={members}
+          draft={receiptDraft}
+          onClose={() => setReceiptDraft(null)}
+          onSaved={() => {
+            setReceiptDraft(null);
+            onClose();
+          }}
+        />
+      )}
     </>
   );
 }

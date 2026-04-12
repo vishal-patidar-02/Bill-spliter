@@ -11,6 +11,8 @@ SplitEase is a lightweight, mobile-first web app that simplifies group expenses 
 
 ## ✨ Key Features (Pro Tier)
 - **Multi-Payer Support (NEW)**: One expense, multiple contributors. Perfect for large hotel bills or shared car rentals where several people pitch in different amounts.
+- **Receipt OCR Import (NEW)**: Upload a receipt image, auto-extract line items, review assignments, and convert directly into split-ready expenses.
+- **AI Receipt Understanding (NEW)**: Free Groq AI extraction improves accuracy for messy receipts and avoids treating payment summary rows as expense items.
 - **Global WebGL Background**: A premium, centralized WebGL-powered wave gradient that stays consistent and fluid across all pages (Home & Session) without glitches.
 - **Cloud Sync (Supabase)**: Your data is automatically backed up to the cloud and synced across devices in real-time.
 - **Real-time Collaboration**: See changes from other group members instantly without reloading.
@@ -62,7 +64,33 @@ This ensures you spend less time transferring money and more time enjoying your 
    ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   OCR_SPACE_API_KEY=your_ocr_space_key_optional
+   GROQ_API_KEY=your_groq_api_key_optional
+   GROQ_MODEL=llama-3.3-70b-versatile
    ```
+   Notes:
+   - `OCR_SPACE_API_KEY` is optional. If missing, the app uses the OCR.space trial key (`helloworld`) with lower reliability.
+   - `GROQ_API_KEY` is optional but recommended for high-quality receipt parsing (completely free).
+   - If `GROQ_API_KEY` is missing, the app falls back to rule-based parsing.
+   - When OCR fails, the app opens a manual review fallback draft so you can still import the receipt.
+
+## AI Receipt Setup (Groq — Free & No Quota Limits)
+1. Go to [Groq Console](https://console.groq.com).
+2. Sign up for free account.
+3. Create an API key in Settings.
+4. Add to `.env.local`:
+   ```env
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=llama-3.3-70b-versatile
+   ```
+5. Restart your dev server after updating env variables.
+6. Upload a receipt and verify the review modal line items no longer include rows like Total, Amount Paid, UPI, Card, or Cash.
+
+## Troubleshooting AI Parsing
+- If Groq AI is not being used, check that `GROQ_API_KEY` is set in `.env.local` and restart dev server.
+- If the model returns invalid JSON, the route will fall back automatically; check warning text in the review modal.
+- Keep manual review enabled because no parser is 100% perfect for all receipt formats.
+- Free Groq tier has generous limits; if you hit any limits, consider upgrading their paid plan.
 3. Run development server:
    ```bash
    npm run dev
