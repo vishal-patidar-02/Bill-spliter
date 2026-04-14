@@ -184,7 +184,7 @@ function HomeContent() {
         {/* ── Promo cards ── */}
         <div className="w-full flex flex-col gap-3">
           <a
-            href="https://github.com/SplitEase"
+            href="https://github.com/vishal-patidar-02/SplitEase.git"
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-4 p-4 rounded-2xl
